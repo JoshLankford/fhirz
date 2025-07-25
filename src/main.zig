@@ -1,46 +1,83 @@
-//! By convention, main.zig is where your main function lives in the case that
-//! you are building an executable. If you are making a library, the convention
-//! is to delete this file and start with root.zig instead.
+const std = @import("std");
+const print = std.debug.print;
+const http = std.http;
+
+const Patient = @import("model/patient.zig").Patient;
+
+fn getPatient() !void {
+    var gpa = std.heap.GeneralPurposeAllocator(.{}){};
+    defer _ = gpa.deinit();
+    const allocator = gpa.allocator();
+
+    var client = http.Client{ .allocator = allocator };
+    defer client.deinit();
+
+    var response_body = std.ArrayList(u8).init(allocator);
+    defer response_body.deinit();
+
+    const result = try client.fetch(.{
+        .method = .GET,
+        .location = .{ .url = "http://localhost:8080/fhir/Patient/1" },
+        .response_storage = .{ .dynamic = &response_body },
+    });
+
+    std.debug.print("Status: {d}\n", .{result.status});
+    std.debug.print("Response Body:\n{s}\n", .{response_body.items});
+
+    const parsed = try std.json.parseFromSlice(Patient, allocator, response_body.items, .{});
+    defer parsed.deinit();
+
+    const patient: Patient = parsed.value;
+    std.debug.print("Patient:\n{}\n", .{patient});
+}
+
+fn createPatient() !void {
+    var gpa = std.heap.GeneralPurposeAllocator(.{}){};
+    defer _ = gpa.deinit();
+    const allocator = gpa.allocator();
+
+    var client = http.Client{ .allocator = allocator };
+    defer client.deinit();
+
+    const payload =
+        \\{
+        \\  "resourceType": "Patient",
+        \\  "identifier": [
+        \\    {
+        \\      "use": "official",
+        \\      "value": "18675309"
+        \\    }
+        \\  ],
+        \\  "name": [
+        \\    {
+        \\      "use": "official",
+        \\      "family": "Doe",
+        \\      "given": ["John"]
+        \\    }
+        \\  ],
+        \\  "gender": "male",
+        \\  "birthDate": "1980-04-01"
+        \\}
+    ;
+
+    var response_body = std.ArrayList(u8).init(allocator);
+    defer response_body.deinit();
+
+    const result = try client.fetch(.{
+        .method = .POST,
+        .location = .{ .url = "http://localhost:8080/fhir/Patient" },
+        .extra_headers = &[_]http.Header{
+            .{ .name = "Content-Type", .value = "application/json" },
+        },
+        .payload = payload,
+        .response_storage = .{ .dynamic = &response_body },
+    });
+
+    std.debug.print("Status: {d}\n", .{result.status});
+    std.debug.print("Response Body:\n{s}\n", .{response_body.items});
+}
 
 pub fn main() !void {
-    // Prints to stderr (it's a shortcut based on `std.io.getStdErr()`)
-    std.debug.print("All your {s} are belong to us.\n", .{"codebase"});
-
-    // stdout is for the actual output of your application, for example if you
-    // are implementing gzip, then only the compressed bytes should be sent to
-    // stdout, not any debugging messages.
-    const stdout_file = std.io.getStdOut().writer();
-    var bw = std.io.bufferedWriter(stdout_file);
-    const stdout = bw.writer();
-
-    try stdout.print("Run `zig build test` to run the tests.\n", .{});
-
-    try bw.flush(); // Don't forget to flush!
+    try createPatient();
+    try getPatient();
 }
-
-test "simple test" {
-    var list = std.ArrayList(i32).init(std.testing.allocator);
-    defer list.deinit(); // Try commenting this out and see if zig detects the memory leak!
-    try list.append(42);
-    try std.testing.expectEqual(@as(i32, 42), list.pop());
-}
-
-test "use other module" {
-    try std.testing.expectEqual(@as(i32, 150), lib.add(100, 50));
-}
-
-test "fuzz example" {
-    const Context = struct {
-        fn testOne(context: @This(), input: []const u8) anyerror!void {
-            _ = context;
-            // Try passing `--fuzz` to `zig build test` and see if it manages to fail this test case!
-            try std.testing.expect(!std.mem.eql(u8, "canyoufindme", input));
-        }
-    };
-    try std.testing.fuzz(Context{}, Context.testOne, .{});
-}
-
-const std = @import("std");
-
-/// This imports the separate module containing `root.zig`. Take a look in `build.zig` for details.
-const lib = @import("fhirz_lib");
