@@ -1,7 +1,5 @@
 const std = @import("std");
-const print = std.debug.print;
-const http = std.http;
-
+const Request = @import("request.zig").Request;
 const Patient = @import("model/patient.zig").Patient;
 
 fn getPatient() !void {
@@ -9,36 +7,40 @@ fn getPatient() !void {
     defer _ = gpa.deinit();
     const allocator = gpa.allocator();
 
-    var client = http.Client{ .allocator = allocator };
-    defer client.deinit();
+    var req = Request.init(allocator);
+    defer req.deinit();
 
-    var response_body = std.ArrayList(u8).init(allocator);
-    defer response_body.deinit();
-
-    const result = try client.fetch(.{
-        .method = .GET,
-        .location = .{ .url = "http://localhost:8080/fhir/Patient/1" },
-        .response_storage = .{ .dynamic = &response_body },
-    });
+    const result = try req.get("http://localhost:8080/fhir/Patient/1");
 
     std.debug.print("Status: {d}\n", .{result.status});
-    std.debug.print("Response Body:\n{s}\n", .{response_body.items});
+    std.debug.print("Response Body:\n{s}\n", .{req.response_body.items});
 
-    const parsed = try std.json.parseFromSlice(Patient, allocator, response_body.items, .{});
-    defer parsed.deinit();
+    if (result.status == .ok) {
+        const parsed = try std.json.parseFromSlice(Patient, allocator, req.response_body.items, .{});
+        defer parsed.deinit();
 
-    const patient: Patient = parsed.value;
-    std.debug.print("Patient:\n{}\n", .{patient});
+        const patient: Patient = parsed.value;
+        std.debug.print("Patient:\n{}\n", .{patient});
+    } else {
+        std.debug.print("Failed to retrieve patient. Status: {d}\n", .{result.status});
+    }
 }
 
-fn createPatient() !void {
+fn createPatient(payload: []const u8) !void {
     var gpa = std.heap.GeneralPurposeAllocator(.{}){};
     defer _ = gpa.deinit();
     const allocator = gpa.allocator();
 
-    var client = http.Client{ .allocator = allocator };
-    defer client.deinit();
+    var req = Request.init(allocator);
+    defer req.deinit();
 
+    const result = try req.post("http://localhost:8080/fhir/Patient", payload);
+
+    std.debug.print("Status: {d}\n", .{result.status});
+    std.debug.print("Response Body:\n{s}\n", .{req.response_body.items});
+}
+
+pub fn main() !void {
     const payload =
         \\{
         \\  "resourceType": "Patient",
@@ -59,25 +61,6 @@ fn createPatient() !void {
         \\  "birthDate": "1980-04-01"
         \\}
     ;
-
-    var response_body = std.ArrayList(u8).init(allocator);
-    defer response_body.deinit();
-
-    const result = try client.fetch(.{
-        .method = .POST,
-        .location = .{ .url = "http://localhost:8080/fhir/Patient" },
-        .extra_headers = &[_]http.Header{
-            .{ .name = "Content-Type", .value = "application/json" },
-        },
-        .payload = payload,
-        .response_storage = .{ .dynamic = &response_body },
-    });
-
-    std.debug.print("Status: {d}\n", .{result.status});
-    std.debug.print("Response Body:\n{s}\n", .{response_body.items});
-}
-
-pub fn main() !void {
-    try createPatient();
+    try createPatient(payload);
     try getPatient();
 }
