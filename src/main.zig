@@ -2,7 +2,7 @@ const std = @import("std");
 const Request = @import("request.zig").Request;
 const Patient = @import("model/patient.zig");
 
-fn getPatient(id: []const u8) !void {
+fn getPatient(server: []const u8, id: []const u8) !void {
     var gpa = std.heap.GeneralPurposeAllocator(.{}){};
     defer _ = gpa.deinit();
     const allocator = gpa.allocator();
@@ -10,7 +10,7 @@ fn getPatient(id: []const u8) !void {
     var req = Request.init(allocator);
     defer req.deinit();
 
-    const url = try std.fmt.allocPrint(allocator, "http://localhost:8080/fhir/Patient/{s}", .{id});
+    const url = try std.fmt.allocPrint(allocator, "{s}/fhir/Patient/{s}", .{ server, id });
     defer allocator.free(url);
 
     const result = try req.get(url);
@@ -29,7 +29,7 @@ fn getPatient(id: []const u8) !void {
     }
 }
 
-fn postPatient(payload: []const u8) !void {
+fn postPatient(server: []const u8, payload: []const u8) !void {
     var gpa = std.heap.GeneralPurposeAllocator(.{}){};
     defer _ = gpa.deinit();
     const allocator = gpa.allocator();
@@ -37,13 +37,16 @@ fn postPatient(payload: []const u8) !void {
     var req = Request.init(allocator);
     defer req.deinit();
 
-    const result = try req.post("http://localhost:8080/fhir/Patient", payload);
+    const url = try std.fmt.allocPrint(allocator, "{s}/fhir/Patient", .{server});
+    defer allocator.free(url);
+
+    const result = try req.post(url, payload);
 
     std.debug.print("Status: {d}\n", .{result.status});
     std.debug.print("Response Body:\n{s}\n", .{req.response_body.items});
 }
 
-fn createTestPatient() ![]const u8 {
+fn createTestPatient(allocator: std.mem.Allocator) ![]const u8 {
     var identifiers = [_]Patient.Identifier{.{ .use = "official", .value = "18675309" }};
     var given_names = [_][]const u8{"John"};
     var names = [_]Patient.HumanName{.{ .use = "official", .family = "Doe", .given = given_names[0..] }};
@@ -56,18 +59,35 @@ fn createTestPatient() ![]const u8 {
         .birthDate = "1980-04-01",
     };
 
+    const patient_json = try std.json.stringifyAlloc(allocator, patient, .{});
+    return patient_json;
+}
+
+const Config = struct {
+    fhir_server: []const u8,
+};
+
+fn readConfig(allocator: std.mem.Allocator, path: []const u8) !std.json.Parsed(Config) {
+    // 512 is the maximum size to read, if your config is larger
+    // you should make this bigger.
+    const data = try std.fs.cwd().readFileAlloc(allocator, path, 512);
+    defer allocator.free(data);
+    return std.json.parseFromSlice(Config, allocator, data, .{ .allocate = .alloc_always });
+}
+
+pub fn main() !void {
     var gpa = std.heap.GeneralPurposeAllocator(.{}){};
     defer _ = gpa.deinit();
     const allocator = gpa.allocator();
 
-    const patient_json = try std.json.stringifyAlloc(allocator, patient, .{});
-    defer allocator.free(patient_json);
+    const parsed = try readConfig(allocator, "config.json");
+    defer parsed.deinit();
 
-    return patient_json;
-}
+    const config = parsed.value;
+    std.debug.print("config.fhir_server: {s}\n", .{config.fhir_server});
 
-pub fn main() !void {
-    const patient = try createTestPatient();
-    try postPatient(patient);
-    try getPatient("1");
+    const patient = try createTestPatient(allocator);
+    defer allocator.free(patient);
+    try postPatient(config.fhir_server, patient);
+    try getPatient(config.fhir_server, "1");
 }
