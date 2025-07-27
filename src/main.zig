@@ -1,4 +1,5 @@
 const std = @import("std");
+const config = @import("config.zig");
 const Request = @import("request.zig").Request;
 const Patient = @import("model/patient.zig");
 
@@ -63,31 +64,19 @@ fn createTestPatient(allocator: std.mem.Allocator) ![]const u8 {
     return patient_json;
 }
 
-const Config = struct {
-    fhir_server: []const u8,
-};
-
-fn readConfig(allocator: std.mem.Allocator, path: []const u8) !std.json.Parsed(Config) {
-    // 512 is the maximum size to read, if your config is larger
-    // you should make this bigger.
-    const data = try std.fs.cwd().readFileAlloc(allocator, path, 512);
-    defer allocator.free(data);
-    return std.json.parseFromSlice(Config, allocator, data, .{ .allocate = .alloc_always });
-}
-
 pub fn main() !void {
     var gpa = std.heap.GeneralPurposeAllocator(.{}){};
     defer _ = gpa.deinit();
     const allocator = gpa.allocator();
 
-    const parsed = try readConfig(allocator, "config.json");
+    const parsed = try config.readConfig(allocator, "config.json");
     defer parsed.deinit();
 
-    const config = parsed.value;
-    std.debug.print("config.fhir_server: {s}\n", .{config.fhir_server});
+    const parsed_config = parsed.value;
+    std.debug.print("parsed_config.fhir_server: {s}\n", .{parsed_config.fhir_server});
 
     const patient = try createTestPatient(allocator);
     defer allocator.free(patient);
-    try postPatient(config.fhir_server, patient);
-    try getPatient(config.fhir_server, "1");
+    try postPatient(parsed_config.fhir_server, patient);
+    try getPatient(parsed_config.fhir_server, "1");
 }
