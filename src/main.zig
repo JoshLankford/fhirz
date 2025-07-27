@@ -1,6 +1,6 @@
 const std = @import("std");
 const config = @import("config.zig");
-const Request = @import("request.zig").Request;
+const request = @import("request.zig");
 const Patient = @import("model/patient.zig");
 
 fn getPatient(server: []const u8, id: []const u8) !void {
@@ -8,7 +8,7 @@ fn getPatient(server: []const u8, id: []const u8) !void {
     defer _ = gpa.deinit();
     const allocator = gpa.allocator();
 
-    var req = Request.init(allocator);
+    var req = request.Request.init(allocator);
     defer req.deinit();
 
     const url = try std.fmt.allocPrint(allocator, "{s}/fhir/Patient/{s}", .{ server, id });
@@ -35,7 +35,7 @@ fn postPatient(server: []const u8, payload: []const u8) !void {
     defer _ = gpa.deinit();
     const allocator = gpa.allocator();
 
-    var req = Request.init(allocator);
+    var req = request.Request.init(allocator);
     defer req.deinit();
 
     const url = try std.fmt.allocPrint(allocator, "{s}/fhir/Patient", .{server});
