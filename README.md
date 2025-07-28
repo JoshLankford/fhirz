@@ -28,10 +28,10 @@ A lightweight FHIR client library written in Zig, targeting the [FHIR R5](https:
    ```
 
 3. **Update Build**:
-  ```zig
-    exe_mod.addImport("test_fhirz_lib", lib_mod);
-    exe.root_module.addImport("fhirz", fhirz.module("fhirz"));
-  ```
+   ```zig
+   exe_mod.addImport("test_fhirz_lib", lib_mod);
+   exe.root_module.addImport("fhirz", fhirz.module("fhirz"));
+   ```
 
 4. **Example**:
    ```zig
