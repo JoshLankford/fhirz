@@ -2,33 +2,7 @@ const std = @import("std");
 const config = @import("config.zig");
 const request = @import("request.zig");
 const Patient = @import("model/patient.zig");
-
-fn getPatient(server: []const u8, id: []const u8) !void {
-    var gpa = std.heap.GeneralPurposeAllocator(.{}){};
-    defer _ = gpa.deinit();
-    const allocator = gpa.allocator();
-
-    var req = request.Request.init(allocator);
-    defer req.deinit();
-
-    const url = try std.fmt.allocPrint(allocator, "{s}/fhir/Patient/{s}", .{ server, id });
-    defer allocator.free(url);
-
-    const result = try req.get(url);
-
-    std.debug.print("Status: {d}\n", .{result.status});
-    std.debug.print("Response Body:\n{s}\n", .{req.response_body.items});
-
-    if (result.status == .ok) {
-        const parsed = try std.json.parseFromSlice(Patient.Patient, allocator, req.response_body.items, .{});
-        defer parsed.deinit();
-
-        const patient: Patient.Patient = parsed.value;
-        std.debug.print("Patient:\n{}\n", .{patient});
-    } else {
-        std.debug.print("Failed to retrieve patient. Status: {d}\n", .{result.status});
-    }
-}
+const Client = @import("client.zig");
 
 fn postPatient(server: []const u8, payload: []const u8) !void {
     var gpa = std.heap.GeneralPurposeAllocator(.{}){};
@@ -45,6 +19,30 @@ fn postPatient(server: []const u8, payload: []const u8) !void {
 
     std.debug.print("Status: {d}\n", .{result.status});
     std.debug.print("Response Body:\n{s}\n", .{req.response_body.items});
+}
+
+fn getGeneric(server: []const u8) !void {
+    var gpa = std.heap.GeneralPurposeAllocator(.{}){};
+    defer _ = gpa.deinit();
+    const allocator = gpa.allocator();
+
+    // Create a generic FHIR client for Patient resources
+    var client = Client.Client(Patient.Patient).init(allocator, server);
+    defer client.deinit();
+
+    var result = client.get("1") catch |err| {
+        std.debug.print("Failed to get patient: {}", .{err});
+        return;
+    };
+
+    if (result.isSuccess()) {
+        std.debug.print("Patient retrieved successfully. Status: {d}\n", .{result.status_code});
+        if (result.resource) |patient| {
+            std.debug.print("Retrieved patient: {}\n", .{patient});
+        }
+    } else {
+        std.debug.print("Failed to retrieve patient. Status: {d}\n", .{result.status_code});
+    }
 }
 
 fn createTestPatient(allocator: std.mem.Allocator) ![]const u8 {
@@ -78,5 +76,5 @@ pub fn main() !void {
     const patient = try createTestPatient(allocator);
     defer allocator.free(patient);
     try postPatient(parsed_config.fhir_server, patient);
-    try getPatient(parsed_config.fhir_server, "1");
+    try getGeneric(parsed_config.fhir_server);
 }

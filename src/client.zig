@@ -24,13 +24,49 @@ pub fn Client(comptime ResourceType: type) type {
             self.http_client.deinit();
         }
 
-        fn buildResourceUrl(self: *Self) ![]const u8 {
+        fn buildResourceUrl(self: *Self, id: ?[]const u8) ![]const u8 {
             const resource_type = ResourceInterface.getResourceType();
 
-            return std.fmt.allocPrint(self.allocator, "{s}/fhir/{s}", .{
-                self.server,
-                resource_type,
-            });
+            if (id) |resource_id| {
+                return std.fmt.allocPrint(self.allocator, "{s}/fhir/{s}/{s}", .{
+                    self.server,
+                    resource_type,
+                    resource_id,
+                });
+            } else {
+                return std.fmt.allocPrint(self.allocator, "{s}/fhir/{s}", .{
+                    self.server,
+                    resource_type,
+                });
+            }
+        }
+
+        pub fn get(self: *Self, id: []const u8) !resource.OperationResult(ResourceType) {
+            const url = try self.buildResourceUrl(id);
+            defer self.allocator.free(url);
+
+            var result = resource.OperationResult(ResourceType).init();
+
+            const http_result = self.http_client.get(url) catch {
+                result.success = false;
+                result.status_code = 0;
+                return result;
+            };
+
+            result.status_code = @intFromEnum(http_result.status);
+            result.success = http_result.status == .ok;
+
+            if (result.success) {
+                const parsed = std.json.parseFromSlice(ResourceType, self.allocator, self.http_client.response_body.items, .{}) catch {
+                    result.success = false;
+                    return result;
+                };
+                defer parsed.deinit();
+
+                result.resource = parsed.value;
+            }
+
+            return result;
         }
     };
 }
