@@ -28,13 +28,13 @@ pub fn Client(comptime ResourceType: type) type {
             const resource_type = ResourceInterface.getResourceType();
 
             if (id) |resource_id| {
-                return std.fmt.allocPrint(self.allocator, "{s}/fhir/{s}/{s}", .{
+                return std.fmt.allocPrint(self.allocator, "{s}/{s}/{s}", .{
                     self.server,
                     resource_type,
                     resource_id,
                 });
             } else {
-                return std.fmt.allocPrint(self.allocator, "{s}/fhir/{s}", .{
+                return std.fmt.allocPrint(self.allocator, "{s}/{s}", .{
                     self.server,
                     resource_type,
                 });
