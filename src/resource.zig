@@ -49,6 +49,9 @@ test "basic OperationResult test" {
     const PatientResource = Resource(Patient.Patient);
 
     var result = OperationResult(PatientResource).init();
+
+    try std.testing.expect(!result.isSuccess());
+
     result.success = true;
     result.status_code = 200;
 
