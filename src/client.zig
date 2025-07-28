@@ -68,6 +68,41 @@ pub fn Client(comptime ResourceType: type) type {
 
             return result;
         }
+
+        pub fn create(self: *Self, resource_type: ResourceType) !resource.OperationResult(ResourceType) {
+            const url = try self.buildResourceUrl(null);
+            defer self.allocator.free(url);
+
+            const payload = try std.json.stringifyAlloc(self.allocator, resource_type, .{});
+            defer self.allocator.free(payload);
+
+            var result = resource.OperationResult(ResourceType).init();
+
+            const http_result = self.http_client.post(url, payload) catch {
+                result.success = false;
+                result.status_code = 0;
+                return result;
+            };
+
+            result.status_code = @intFromEnum(http_result.status);
+            result.success = http_result.status == .created or http_result.status == .ok;
+
+            if (result.success and self.http_client.response_body.items.len > 0) {
+                const parsed = std.json.parseFromSlice(ResourceType, self.allocator, self.http_client.response_body.items, .{}) catch {
+                    // Creation succeeded but parsing response failed - still consider it a success
+                    result.resource = resource_type;
+                    return result;
+                };
+                defer parsed.deinit();
+
+                result.resource = parsed.value;
+            } else if (result.success) {
+                // Creation succeeded but no response body - use the original resource
+                result.resource = resource_type;
+            }
+
+            return result;
+        }
     };
 }
 
