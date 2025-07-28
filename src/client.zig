@@ -120,10 +120,10 @@ test "resource_url test" {
     var client = Client(Patient.Patient).init(allocator, server);
     defer client.deinit();
 
-    const expected_url = try std.fmt.allocPrint(allocator, "{s}/fhir/Patient", .{server});
+    const expected_url = try std.fmt.allocPrint(allocator, "{s}/Patient", .{server});
     defer allocator.free(expected_url);
 
-    const resource_url = try client.buildResourceUrl();
+    const resource_url = try client.buildResourceUrl(null);
     defer allocator.free(resource_url);
 
     try std.testing.expect(std.mem.eql(u8, resource_url, expected_url));
