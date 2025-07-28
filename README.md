@@ -22,10 +22,16 @@ A lightweight FHIR client library written in Zig, targeting the [FHIR R5](https:
    }
    ```
 
-2. **Build and run**:
+2. **Install**:
    ```bash
-   zig build run
+   zig fetch --save "https://github.com/JoshLankford/fhirz#master"
    ```
+
+3. **Update Build**:
+  ```zig
+    exe_mod.addImport("test_fhirz_lib", lib_mod);
+    exe.root_module.addImport("fhirz", fhirz.module("fhirz"));
+  ```
 
 ## Development Setup
 
