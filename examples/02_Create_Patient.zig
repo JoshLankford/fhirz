@@ -21,7 +21,9 @@ pub fn main() !void {
 
     if (result.isSuccess()) {
         std.debug.print("Patient created successfully. Status: {d}\n", .{result.status_code});
-        std.debug.print("Patient: {}\n", .{result.resource});
+        if (result.resource) |patient| {
+            std.debug.print("Patient: {any}\n", .{patient});
+        }
     } else {
         std.debug.print("Failed to create patient. Status: {d}\n", .{result.status_code});
     }

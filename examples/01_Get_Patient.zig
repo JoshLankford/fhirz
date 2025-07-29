@@ -17,7 +17,7 @@ pub fn main() !void {
     if (result.isSuccess()) {
         std.debug.print("Patient retrieved successfully. Status: {d}\n", .{result.status_code});
         if (result.resource) |patient| {
-            std.debug.print("Retrieved patient: {}\n", .{patient});
+            std.debug.print("Retrieved patient: {any}\n", .{patient});
         }
     } else {
         std.debug.print("Failed to retrieve patient. Status: {d}\n", .{result.status_code});
