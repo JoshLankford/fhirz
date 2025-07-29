@@ -5,6 +5,8 @@ const resource = @import("resource.zig");
 // Client-specific errors
 const ClientError = error{
     ResourceAlreadyHasId,
+    ResourceMissingId,
+    ResourceIdMismatch,
 };
 
 pub fn Client(comptime ResourceType: type) type {
@@ -115,6 +117,13 @@ pub fn Client(comptime ResourceType: type) type {
         }
 
         pub fn update(self: *Self, id: []const u8, resource_type: ResourceType) !resource.OperationResult(ResourceType) {
+            // Strict validation: resource must have an ID that matches the parameter
+            const resource_id = resource_type.id orelse return ClientError.ResourceMissingId;
+
+            if (!std.mem.eql(u8, id, resource_id)) {
+                return ClientError.ResourceIdMismatch;
+            }
+
             const url = try self.buildResourceUrl(id);
             defer self.allocator.free(url);
 
