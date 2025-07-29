@@ -2,9 +2,6 @@ const std = @import("std");
 
 pub const Client = @import("src/client.zig").Client;
 
-pub const Config = @import("src/config.zig").Config;
-pub const readConfig = @import("src/config.zig").readConfig;
-
 pub const Resource = @import("src/resource.zig").Resource;
 pub const OperationResult = @import("src/resource.zig").OperationResult;
 

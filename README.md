@@ -15,25 +15,18 @@ A lightweight FHIR client library written in Zig, targeting the [FHIR R5](https:
 
 ## Quick Start
 
-1. **Configure your FHIR server** in `config.json`:
-   ```json
-   {
-     "fhir_server": "http://localhost:8080/fhir"
-   }
-   ```
-
-2. **Install**:
+1. **Install**:
    ```bash
    zig fetch --save "https://github.com/JoshLankford/fhirz#master"
    ```
 
-3. **Update Build**:
+2. **Update Build**:
    ```zig
    exe_mod.addImport("test_fhirz_lib", lib_mod);
    exe.root_module.addImport("fhirz", fhirz.module("fhirz"));
    ```
 
-4. **Example**:
+3. **Example**:
    ```zig
    const std = @import("std");
    const fhirz = @import("fhirz");

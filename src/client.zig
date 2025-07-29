@@ -141,20 +141,14 @@ pub fn Client(comptime ResourceType: type) type {
 }
 
 test "resource_url test" {
-    const config = @import("config.zig");
     const Patient = @import("model/patient.zig");
 
     const allocator = std.testing.allocator;
 
-    const test_config = try config.readConfig(allocator, "config.json");
-    defer test_config.deinit();
-
-    const server = test_config.value.fhir_server;
-
-    var client = Client(Patient.Patient).init(allocator, server);
+    var client = Client(Patient.Patient).init(allocator, "http://localhost:8080/fhir");
     defer client.deinit();
 
-    const expected_url = try std.fmt.allocPrint(allocator, "{s}/Patient", .{server});
+    const expected_url = try std.fmt.allocPrint(allocator, "{s}/Patient", .{"http://localhost:8080/fhir"});
     defer allocator.free(expected_url);
 
     const resource_url = try client.buildResourceUrl(null);
