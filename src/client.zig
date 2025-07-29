@@ -103,6 +103,40 @@ pub fn Client(comptime ResourceType: type) type {
 
             return result;
         }
+
+        pub fn update(self: *Self, id: []const u8, resource_type: ResourceType) !resource.OperationResult(ResourceType) {
+            const url = try self.buildResourceUrl(id);
+            defer self.allocator.free(url);
+
+            const payload = try std.json.stringifyAlloc(self.allocator, resource_type, .{});
+            defer self.allocator.free(payload);
+
+            var result = resource.OperationResult(ResourceType).init();
+
+            const http_result = self.http_client.put(url, payload) catch {
+                result.success = false;
+                result.status_code = 0;
+                return result;
+            };
+
+            result.status_code = @intFromEnum(http_result.status);
+            result.success = http_result.status == .ok or http_result.status == .created;
+
+            if (result.success and self.http_client.response_body.items.len > 0) {
+                const parsed = std.json.parseFromSlice(ResourceType, self.allocator, self.http_client.response_body.items, .{}) catch {
+                    // Update succeeded but parsing response failed
+                    result.resource = resource_type;
+                    return result;
+                };
+                defer parsed.deinit();
+
+                result.resource = parsed.value;
+            } else if (result.success) {
+                result.resource = resource_type;
+            }
+
+            return result;
+        }
     };
 }
 

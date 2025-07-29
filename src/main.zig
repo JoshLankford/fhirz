@@ -4,6 +4,29 @@ const request = @import("request.zig");
 const Patient = @import("model/patient.zig");
 const Client = @import("client.zig");
 
+fn updateGeneric(server: []const u8, payload: Patient.Patient) !void {
+    var gpa = std.heap.GeneralPurposeAllocator(.{}){};
+    defer _ = gpa.deinit();
+    const allocator = gpa.allocator();
+
+    var client = Client.Client(Patient.Patient).init(allocator, server);
+    defer client.deinit();
+
+    var result = client.update("1", payload) catch |err| {
+        std.debug.print("Failed to update patient: {}\n", .{err});
+        return;
+    };
+
+    if (result.isSuccess()) {
+        std.debug.print("✓ Patient updated successfully! Status: {d}\n", .{result.status_code});
+        if (result.resource) |updated_patient| {
+            std.debug.print("Updated patient: {}\n", .{updated_patient});
+        }
+    } else {
+        std.debug.print("✗ Failed to update patient. Status: {d}\n", .{result.status_code});
+    }
+}
+
 fn createGeneric(server: []const u8, payload: Patient.Patient) !void {
     var gpa = std.heap.GeneralPurposeAllocator(.{}){};
     defer _ = gpa.deinit();
@@ -82,5 +105,6 @@ pub fn main() !void {
     const patient = createTestPatient();
 
     try createGeneric(parsed_config.fhir_server, patient);
+    try updateGeneric(parsed_config.fhir_server, patient);
     try getGeneric(parsed_config.fhir_server);
 }

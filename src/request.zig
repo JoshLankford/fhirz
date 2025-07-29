@@ -43,4 +43,18 @@ pub const Request = struct {
 
         return result;
     }
+
+    pub fn put(self: *Self, url: []const u8, payload: []const u8) !http.Client.FetchResult {
+        const result = try self.http_client.fetch(.{
+            .method = .PUT,
+            .location = .{ .url = url },
+            .extra_headers = &[_]http.Header{
+                .{ .name = "Content-Type", .value = "application/json" },
+            },
+            .payload = payload,
+            .response_storage = .{ .dynamic = &self.response_body },
+        });
+
+        return result;
+    }
 };
