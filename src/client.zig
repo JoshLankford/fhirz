@@ -2,6 +2,11 @@ const std = @import("std");
 const request = @import("request.zig");
 const resource = @import("resource.zig");
 
+// Client-specific errors
+const ClientError = error{
+    ResourceAlreadyHasId,
+};
+
 pub fn Client(comptime ResourceType: type) type {
     const ResourceInterface = resource.Resource(ResourceType);
 
@@ -70,6 +75,11 @@ pub fn Client(comptime ResourceType: type) type {
         }
 
         pub fn create(self: *Self, resource_type: ResourceType) !resource.OperationResult(ResourceType) {
+            // Reject resources that already have an ID - FHIR servers should assign IDs during creation
+            if (resource_type.id != null) {
+                return ClientError.ResourceAlreadyHasId;
+            }
+
             const url = try self.buildResourceUrl(null);
             defer self.allocator.free(url);
 
