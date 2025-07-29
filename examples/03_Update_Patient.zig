@@ -15,7 +15,7 @@ pub fn main() !void {
     defer parsed_patient.deinit();
 
     var result = patient_client.update("1", parsed_patient.value) catch |err| {
-        std.debug.print("Failed to update patient: {}", .{err});
+        std.debug.print("Failed to update patient: {}\n", .{err});
         return;
     };
 

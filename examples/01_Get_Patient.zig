@@ -10,7 +10,7 @@ pub fn main() !void {
     defer patient_client.deinit();
 
     var result = patient_client.get("1") catch |err| {
-        std.debug.print("Failed to get patient: {}", .{err});
+        std.debug.print("Failed to get patient: {}\n", .{err});
         return;
     };
 

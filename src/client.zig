@@ -2,7 +2,6 @@ const std = @import("std");
 const request = @import("request.zig");
 const resource = @import("resource.zig");
 
-// Client-specific errors
 const ClientError = error{
     ResourceAlreadyHasId,
     ResourceMissingId,

@@ -15,7 +15,7 @@ pub fn main() !void {
     defer parsed_patient.deinit();
 
     var result = patient_client.create(parsed_patient.value) catch |err| {
-        std.debug.print("Failed to create patient: {}", .{err});
+        std.debug.print("Failed to create patient: {}\n", .{err});
         return;
     };
 
