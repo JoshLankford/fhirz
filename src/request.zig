@@ -57,4 +57,13 @@ pub const Request = struct {
 
         return result;
     }
+
+    pub fn delete(self: *Self, url: []const u8) !http.Client.FetchResult {
+        const result = try self.http_client.fetch(.{
+            .method = .DELETE,
+            .location = .{ .url = url },
+        });
+
+        return result;
+    }
 };

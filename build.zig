@@ -35,6 +35,7 @@ pub fn build(b: *std.Build) void {
         .{ .file = "examples/01_Get_Patient.zig", .name = "example_get_patient" },
         .{ .file = "examples/02_Create_Patient.zig", .name = "example_create_patient" },
         .{ .file = "examples/03_Update_Patient.zig", .name = "example_update_patient" },
+        .{ .file = "examples/04_Delete_Patient.zig", .name = "example_delete_patient" },
     };
 
     {

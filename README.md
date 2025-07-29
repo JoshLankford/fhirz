@@ -11,7 +11,9 @@ A lightweight FHIR client library written in Zig, targeting the [FHIR R5](https:
 **Client Operations**
 - ✅ GET (read resources)
 - ✅ POST (create resources)
-- PUT, DELETE, and search operations planned
+- ✅ PUT (update resource)
+- ✅ DELETE (delete resource)
+- Search operations planned
 
 ## Quick Start
 
@@ -40,20 +42,21 @@ A lightweight FHIR client library written in Zig, targeting the [FHIR R5](https:
       defer patient_client.deinit();
 
       var result = patient_client.get("1") catch |err| {
-         std.debug.print("Failed to get patient: {}", .{err});
+         std.debug.print("Failed to get patient: {}\n", .{err});
          return;
       };
 
       if (result.isSuccess()) {
          std.debug.print("Patient retrieved successfully. Status: {d}\n", .{result.status_code});
          if (result.resource) |patient| {
-               std.debug.print("Retrieved patient: {}\n", .{patient});
+               std.debug.print("Retrieved patient: {any}\n", .{patient});
          }
       } else {
          std.debug.print("Failed to retrieve patient. Status: {d}\n", .{result.status_code});
       }
    }
    ```
+   See [examples](examples/) directory for more.
 
 ## Development Setup
 

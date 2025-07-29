@@ -155,6 +155,24 @@ pub fn Client(comptime ResourceType: type) type {
 
             return result;
         }
+
+        pub fn delete(self: *Self, id: []const u8) !resource.OperationResult(ResourceType) {
+            const url = try self.buildResourceUrl(id);
+            defer self.allocator.free(url);
+
+            var result = resource.OperationResult(ResourceType).init();
+
+            const http_result = self.http_client.delete(url) catch {
+                result.success = false;
+                result.status_code = 0;
+                return result;
+            };
+
+            result.status_code = @intFromEnum(http_result.status);
+            result.success = http_result.status == .no_content or http_result.status == .ok;
+
+            return result;
+        }
     };
 }
 
