@@ -84,12 +84,17 @@ pub fn Client(comptime ResourceType: type) type {
             const url = try self.buildResourceUrl(null);
             defer self.allocator.free(url);
 
-            const payload = try std.json.stringifyAlloc(self.allocator, resource_type, .{});
-            defer self.allocator.free(payload);
+            var out: std.io.Writer.Allocating = .init(self.allocator);
+            defer out.deinit();
+            var write_stream: std.json.Stringify = .{
+                .writer = &out.writer,
+                .options = .{},
+            };
+            try write_stream.write(resource_type);
 
             var result = resource.OperationResult(ResourceType).init();
 
-            const http_result = self.http_client.post(url, payload) catch {
+            const http_result = self.http_client.post(url, out.getWritten()) catch {
                 result.success = false;
                 result.status_code = 0;
                 return result;
@@ -126,12 +131,17 @@ pub fn Client(comptime ResourceType: type) type {
             const url = try self.buildResourceUrl(id);
             defer self.allocator.free(url);
 
-            const payload = try std.json.stringifyAlloc(self.allocator, resource_type, .{});
-            defer self.allocator.free(payload);
+            var out: std.io.Writer.Allocating = .init(self.allocator);
+            defer out.deinit();
+            var write_stream: std.json.Stringify = .{
+                .writer = &out.writer,
+                .options = .{},
+            };
+            try write_stream.write(resource_type);
 
             var result = resource.OperationResult(ResourceType).init();
 
-            const http_result = self.http_client.put(url, payload) catch {
+            const http_result = self.http_client.put(url, out.getWritten()) catch {
                 result.success = false;
                 result.status_code = 0;
                 return result;

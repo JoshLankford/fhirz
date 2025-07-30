@@ -17,7 +17,14 @@ pub fn main() !void {
     if (result.isSuccess()) {
         std.debug.print("Patient retrieved successfully. Status: {d}\n", .{result.status_code});
         if (result.resource) |patient| {
-            std.debug.print("Retrieved patient: {any}\n", .{patient});
+            var out: std.io.Writer.Allocating = .init(allocator);
+            defer out.deinit();
+            var write_stream: std.json.Stringify = .{
+                .writer = &out.writer,
+                .options = .{ .whitespace = .indent_2 },
+            };
+            try write_stream.write(patient);
+            std.debug.print("Retrieved patient: {s}\n", .{out.getWritten()});
         }
     } else {
         std.debug.print("Failed to retrieve patient. Status: {d}\n", .{result.status_code});
