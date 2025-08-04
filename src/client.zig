@@ -191,7 +191,7 @@ test "resource_url test" {
 
     const allocator = std.testing.allocator;
 
-    var client = Client(Patient.Patient).init(allocator, "http://localhost:8080/fhir");
+    var client = Client(Patient).init(allocator, "http://localhost:8080/fhir");
     defer client.deinit();
 
     const expected_url = try std.fmt.allocPrint(allocator, "{s}/Patient", .{"http://localhost:8080/fhir"});

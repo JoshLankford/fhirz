@@ -38,7 +38,7 @@ pub fn OperationResult(comptime T: type) type {
 
 test "basic resource test" {
     const Patient = @import("model/patient.zig");
-    const PatientResource = Resource(Patient.Patient);
+    const PatientResource = Resource(Patient);
 
     const resource_name = PatientResource.getResourceType();
     try std.testing.expect(std.mem.eql(u8, resource_name, "Patient"));
@@ -46,7 +46,7 @@ test "basic resource test" {
 
 test "basic OperationResult test" {
     const Patient = @import("model/patient.zig");
-    const PatientResource = Resource(Patient.Patient);
+    const PatientResource = Resource(Patient);
 
     var result = OperationResult(PatientResource).init();
 

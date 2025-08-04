@@ -1,5 +1,5 @@
 const std = @import("std");
-const Patient = @import("patient.zig").Patient;
+const Patient = @import("patient.zig");
 const expect = std.testing.expect;
 
 test "empty patient test" {

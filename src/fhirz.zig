@@ -7,7 +7,7 @@ pub const OperationResult = @import("resource.zig").OperationResult;
 
 pub const Request = @import("request.zig").Request;
 
-pub const Patient = @import("model/patient.zig").Patient;
+pub const Patient = @import("model/patient.zig");
 
 pub const HumanName = @import("model/patient.zig").HumanName;
 pub const Identifier = @import("model/patient.zig").Identifier;
