@@ -1,0 +1,23 @@
+const Identifier = @import("identifier.zig");
+const Reference = @import("reference.zig");
+const CodeableConcept = @import("codeable_concept.zig");
+const HumanName = @import("human_name.zig");
+const ContactPoint = @import("contact_point.zig");
+const Address = @import("address.zig");
+const Attachment = @import("attachment.zig");
+const Period = @import("period.zig");
+const Communication = @import("communication.zig");
+
+resource_type: []const u8 = "RelatedPerson", // always "RelatedPerson"
+identifier: ?Identifier = null, // A human identifier for this person
+active: ?bool = null, // Whether this related person's record is in active use
+patient: ?Reference = null, // The patient this person is related to
+relationship: ?[]CodeableConcept = null, // The relationship of the related person to the patient
+name: ?[]HumanName = null, // A name associated with the person
+telecom: ?[]ContactPoint = null, // A contact detail for the person
+gender: ?[]const u8 = null, // The gender of the related person
+date: ?[]const u8 = null, // The date on which the related person was born
+address: ?[]Address = null, // Address where the related person can be contacted or visited
+photo: ?[]Attachment = null, // Image of the person
+period: ?Period = null, // Period of time that this relationship is considered valid
+communication: ?[]Communication = null, // A language which may be used to communicate with the related person about the patient's health

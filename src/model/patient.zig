@@ -9,6 +9,7 @@ const Contact = @import("contact.zig");
 const Communication = @import("communication.zig");
 const Reference = @import("reference.zig");
 const Link = @import("link.zig");
+const CodeableConcept = @import("codeable_concept.zig");
 
 // Main Resource: https://hl7.org/fhir/patient.html
 
@@ -24,7 +25,7 @@ birthDate: ?[]const u8 = null, // ISO 8601 date: "YYYY-MM-DD"
 deceasedBoolean: ?bool = null, // Whether the patient is deceased or not
 deceasedDateTime: ?[]const u8 = null, // ISO 8601 date: "YYYY-MM-DD"
 address: []Address = &.{}, // Addresses for the patient
-maritalStatus: ?MaritalStatus = null, // Marital status of a patient
+maritalStatus: ?CodeableConcept = null, // Marital status of a patient
 multipleBirthBoolean: ?bool = null, // Whether the patient is a multiple birth or not
 multipleBirthInteger: ?u32 = null, // Indicates the actual birth order
 contact: []Contact = &.{}, // A contact associated with the patient

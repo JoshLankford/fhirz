@@ -1,0 +1,13 @@
+contentType: ?[]const u8 = null, // I Mime type of the content, with charset etc.
+language: ?[]const u8 = null, // Human language of the content (BCP-47)
+data: ?[]const u8 = null, // I Data inline, base64ed
+url: ?[]const u8 = null, // Uri where the data can be found
+size: ?i64 = null, // Number of bytes of content (if url provided)
+hash: ?[]const u8 = null, // Hash of the data (sha-1, base64ed)
+title: ?[]const u8 = null, // Label to display in place of the data
+creation: ?[]const u8 = null, // Date attachment was first created
+height: ?u32 = null, // Height of the image in pixels (photo/video)
+width: ?u32 = null, // Width of the image in pixels (photo/video)
+frames: ?u32 = null, // Number of frames if > 1 (photo)
+duration: ?f64 = null, // Length in seconds (audio / video)
+pages: ?u32 = null // Number of printed pages
