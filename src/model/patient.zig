@@ -1,4 +1,5 @@
 const Meta = @import("meta.zig");
+const Extension = @import("extension.zig");
 const Identifier = @import("identifier.zig");
 const HumanName = @import("human_name.zig");
 const ContactPoint = @import("contact_point.zig");
@@ -16,6 +17,7 @@ const CodeableConcept = @import("codeable_concept.zig");
 resourceType: []const u8 = "Patient", // always "Patient"
 id: ?[]const u8 = null, // The logical ID of the resource
 meta: ?Meta = null, // Metadata about the resource
+extension: ?[]Extension = &.{},
 identifier: []Identifier = &.{}, // An identifier for this patient
 active: ?bool = null, // Whether this patient's record is in active use
 name: []HumanName = &.{}, // A name associated with the patient
